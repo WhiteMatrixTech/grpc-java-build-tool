@@ -1,0 +1,48 @@
+buildscript {
+    dependencies {
+        classpath "com.google.protobuf:protobuf-gradle-plugin:${protobufGradlePluginVersion}"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'com.google.protobuf' version '0.8.12'
+}
+
+group 'org.example'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.grpc:grpc-netty-shaded:1.42.1'
+    implementation 'io.grpc:grpc-protobuf:1.42.1'
+    implementation 'io.grpc:grpc-stub:1.42.1'
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.2.0"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.4.0'
+        }
+    }
+    generateProtoTasks.generatedFilesBaseDir = "src"
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {
+                setOutputSubDir 'java'
+            }
+        }
+    }
+}
