@@ -7,20 +7,19 @@ buildscript {
 plugins {
     id 'java'
     id 'idea'
-    id 'com.google.protobuf' version '0.8.12'
+    id 'com.google.protobuf' version "${protobufGradlePluginVersion}"
+    id 'java-library'
+    id 'maven-publish'
 }
-
-group 'org.example'
-version '1.0.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'io.grpc:grpc-netty-shaded:1.42.1'
-    implementation 'io.grpc:grpc-protobuf:1.42.1'
-    implementation 'io.grpc:grpc-stub:1.42.1'
+    implementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
     compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
 }
 
@@ -28,13 +27,33 @@ test {
     useJUnitPlatform()
 }
 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = System.env.PROJECT_GROUP_ID
+            artifactId = System.env.PROJECT_ARTIFACT_ID
+            version = System.env.PROJECT_VERSION
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url System.env.CODEARTIFACT_REPO_URL
+            credentials {
+                username System.env.CODEARTIFACT_AUTH_USERNAME
+                password System.env.CODEARTIFACT_AUTH_TOKEN
+            }
+        }
+    }
+}
+
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.2.0"
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.4.0'
+            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
         }
     }
     generateProtoTasks.generatedFilesBaseDir = "src"
@@ -45,4 +64,13 @@ protobuf {
             }
         }
     }
+}
+
+task printEnv{
+    println System.env.PROJECT_GROUP_ID
+    println System.env.PROJECT_ARTIFACT_ID
+    println System.env.PROJECT_VERSION
+    println System.env.CODEARTIFACT_REPO_URL
+    println System.env.CODEARTIFACT_AUTH_USERNAME
+    println System.env.CODEARTIFACT_AUTH_TOKEN
 }
